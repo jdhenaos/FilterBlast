@@ -6,43 +6,46 @@ use Data::Dumper;
 
 open my $IN, "< $ARGV[0]";
 
-#CODIGO PARA RESOLVER LOS NUMERALES A Y B DEL PRIMER PUNTO,
-
-my @hit2;
-my @hit3;
+my @hits;
 my @seq;
 
 while (my @file = <$IN>) {
   for (my $var = 0; $var <= $#file; $var++) {
-    if ($file[$var] =~ /\|/ and $file[$var] !~ /Query/) {
-      my @hit = split (/\s/,$file[$var]);
-      if ($hit[-1]<=1E-6) {
-        push @hit2, $file[$var];
-      } else {
-        push @hit3, $file[$var];
-      }
+    if ($file[$var] =~ /\|/) {
+      push @hits, $file[$var];
     }
-    for (my $i = 0; $i <= total_hits(@hit2, @hit3) ; $i++) {
-      if ($file[$var]=~/^$i/) {
+    for (my $n = 0; $n <= long(@hits); $n++) {
+      if ($file[$var] =~ /^$n/) {
         push @seq, $file[$var];
       }
     }
   }
 }
 
-foreach my $x (@seq) {
-  my @new_seq = split (/\s/,$x);
-  print $new_seq[-2]."\n";
+hash_seq(@hits,@seq);
+
+sub hash_seq {
+  my (@init_hash)=@_;
+  my $number = @hits;
+  my %hash;
+  my @new_seq;
+  for (my $x = $number; $x <= $#init_hash; $x++) {
+    my @div_alig = split (/\s/,$init_hash[$x]);
+    push @new_seq, $div_alig[-2];
+  }
+  for (my $i = 0; $i < $number; $i++) {
+    for (my $j = $i; $j < $number; $j+=$number) {
+       $hash{$init_hash[$i]}=$new_seq[$j].$new_seq[($j + $number)];
+    }
+  }
+  foreach my $key (keys %hash) {
+    print $key."\t".$hash{$key}."\n";
+  }
+
 }
 
-
-print "Hits Significativos:\n";
-print $_ foreach (@hit2);
-
-print "\nHits NO Significativos:\n";
-print $_ foreach (@hit3);
-
-sub total_hits {
-  my (@values) = @_;
-  return ($#values);
+sub long {
+  my @lon=@_;
+  my $length=@lon;
+  return $length;
 }
