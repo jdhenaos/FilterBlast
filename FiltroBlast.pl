@@ -8,6 +8,8 @@ open my $IN, "< $ARGV[0]";
 
 my @hits;
 my @seq;
+my @ns_hits;
+my @s_hits;
 
 while (my @file = <$IN>) {
   for (my $var = 0; $var <= $#file; $var++) {
@@ -19,10 +21,29 @@ while (my @file = <$IN>) {
         push @seq, $file[$var];
       }
     }
+    if ($file[$var] =~ /\|/ and $file[$var] !~ /Query/) {
+      my @info_hit = split (/\s/,$file[$var]);
+      my $e_value = $info_hit[-1];
+      if ($e_value <= 1E-06) {
+        push @s_hits, $file[$var];
+      } else {
+        push @ns_hits, $file[$var];
+      }
+    }
   }
 }
 
-hash_seq(@hits,@seq);
+my %align=hash_seq(@hits,@seq);
+
+print "Hits Significativos:\n\n";
+foreach my $val (@s_hits) {
+  print $val."\t".$align{$hits[0]}."\n\t".$align{$val}."\n\n";
+}
+
+print "Hits NO Significativos:\n\n";
+foreach my $val (@ns_hits) {
+  print $val."\t".$align{$hits[0]}."\n\t".$align{$val}."\n\n";
+}
 
 sub hash_seq {
   my (@init_hash)=@_;
@@ -38,10 +59,7 @@ sub hash_seq {
        $hash{$init_hash[$i]}=$new_seq[$j].$new_seq[($j + $number)];
     }
   }
-  foreach my $key (keys %hash) {
-    print $key."\t".$hash{$key}."\n";
-  }
-
+  return %hash;
 }
 
 sub long {
